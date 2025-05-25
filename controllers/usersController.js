@@ -118,7 +118,7 @@ exports.createPost = (req, res) => {
       res.status(201).json({ message: "post created successfully" });
     }
   );
-}
+};
 
 // create getpost api
 exports.getPosts = (req, res) => {
