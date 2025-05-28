@@ -484,3 +484,33 @@ exports.updateProfile = (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+exports.toggleLike = (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user.id;
+
+    const checkQuery = "SELECT * FROM likes WHERE post_id = ? AND user_id = ?";
+
+    db.query(checkQuery, [postId, userId], (err, result) => {
+      if (err) return res.status(500).json({ error: err });
+
+      if (result.length > 0) {
+        const deleteQuery =
+          "DELETE FROM likes WHERE post_id = ? AND user_id = ? ";
+        db.query(deleteQuery, [postId, userId], (err) => {
+          if (err) return res.status(500).json({ error: err });
+          return res.json({ message: "post unliked" });
+        });
+      } else {
+        const insertQuery = "INSERT INTO likes (post_id,user_id) VALUES(?,?)";
+
+        db.query(insertQuery, [postId, userId], (err) => {
+          if (err) return res.status(500).json({ message: "post liked" });
+        });
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: err });
+  }
+};
