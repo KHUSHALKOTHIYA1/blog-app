@@ -1,9 +1,14 @@
 const bcrypt = require("bcrypt");
 const db = require("../config/db");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("../config/nodemailer");
+
+const generateOTP = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
 
 //register
 exports.register = async (req, res) => {
+  const generateotp = generateOTP();
   try {
     const { name, email, password } = req.body;
 
@@ -15,16 +20,52 @@ exports.register = async (req, res) => {
       }
 
       db.query(
-        "INSERT INTO users(name,email,password) VALUES (?,?,?)",
-        [name, email, hashedPassword],
+        "INSERT INTO users(name,email,password,otp) VALUES (?,?,?,?)",
+        [name, email, hashedPassword, generateotp],
         (err) => {
           if (err) return res.status(500).json({ error: err });
+
+          sendEmail(email, "verify your email", `your OTP is ${generateotp}`);
+
           res.status(200).json({ message: "email registered successfully" });
         }
       );
     });
   } catch (error) {
     return res.status(500).json({ message: "error:err" });
+  }
+};
+
+// verify OTP
+exports.verifyOTP = (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    db.query(
+      "SELECT * FROM users WHERE email = ? AND otp = ?",
+      [email, otp],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err });
+
+        if (result.length === 0) {
+          return res.status(400).json({ message: "Invalid OTP or Email" });
+        }
+
+        db.query(
+          "UPDATE users SET is_verified = 1, otp = NULL WHERE email = ?",
+          [email],
+          (err) => {
+            if (err) return res.status(500).json({ error: err });
+
+            sendEmail(email, "otp verified successfully");
+
+            res.status(200).json({ message: "Email verified successfully" });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: err });
   }
 };
 
@@ -386,3 +427,4 @@ exports.selectByAuther = (req, res) => {
     });
   });
 };
+

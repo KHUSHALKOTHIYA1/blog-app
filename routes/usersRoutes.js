@@ -14,11 +14,13 @@ const {
   comments,
   getComments,
   selectByAuther,
+  verifyOTP,
 } = require("../controllers/usersController");
 const { authenticateToken } = require("../middleware/authenticateToken");
 
 router.post("/register", register);
 router.post("/login", login);
+router.post("/verifyOTP", verifyOTP);
 router.post("/forgotPassword", forgotPassword);
 router.post("/createPost", authenticateToken, createPost);
 router.get("/posts", authenticateToken, getPosts);
