@@ -15,6 +15,7 @@ const {
   getComments,
   selectByAuther,
   verifyOTP,
+  updateProfile,
 } = require("../controllers/usersController");
 const { authenticateToken } = require("../middleware/authenticateToken");
 
@@ -32,6 +33,6 @@ router.get("/pagination", authenticateToken, pagination);
 router.post("/comments/:id", authenticateToken, comments);
 router.get("/getComments/:id", authenticateToken, getComments);
 router.get("/selectByAuther", authenticateToken, selectByAuther);
-
+router.put("/updateProfile", authenticateToken, updateProfile);
 
 module.exports = router;

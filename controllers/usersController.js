@@ -443,3 +443,44 @@ exports.selectByAuther = (req, res) => {
     });
   });
 };
+
+exports.updateProfile = (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, email, avatar } = req.body;
+
+    if (!name && !email && !avatar) {
+      return res.status(400).json({ message: "No data provided to update" });
+    }
+
+    const fields = [];
+    const values = [];
+
+    if (name) {
+      fields.push("name = ?");
+      values.push(name);
+    }
+
+    if (email) {
+      fields.push("email = ?");
+      values.push(email);
+    }
+
+    if (avatar) {
+      fields.push("avatar = ?");
+      values.push(avatar);
+    }
+
+    values.push(userId);
+
+    const sql = `UPDATE users SET ${fields.join(", ")} WHERE id = ? `;
+
+    db.query(sql, values, (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      res.json({ message: "profile update successfully  " });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
