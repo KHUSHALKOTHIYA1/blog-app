@@ -2,13 +2,29 @@ const bcrypt = require("bcrypt");
 const db = require("../config/db");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../config/nodemailer");
+const { body, validationResult } = require("express-validator");
 
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
 //register
 exports.register = async (req, res) => {
+  //validation
+  body("name").trim().notEmpty().withMessage("name is required");
+  body("email").trim().notEmpty().withMessage("email is required");
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("password atleast 6 character");
+
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+  };
+
   const generateotp = generateOTP();
+
   try {
     const { name, email, password } = req.body;
 
@@ -427,4 +443,3 @@ exports.selectByAuther = (req, res) => {
     });
   });
 };
-
