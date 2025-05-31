@@ -17,6 +17,8 @@ const {
   verifyOTP,
   updateProfile,
   toggleLike,
+  getpostById,
+  getLikedPosts,
 } = require("../controllers/usersController");
 const { authenticateToken } = require("../middleware/authenticateToken");
 
@@ -36,5 +38,7 @@ router.get("/getComments/:id", authenticateToken, getComments);
 router.get("/selectByAuther", authenticateToken, selectByAuther);
 router.put("/updateProfile", authenticateToken, updateProfile);
 router.post("/toggleLike", authenticateToken, toggleLike);
+router.post("/getpostById/:id", authenticateToken, getpostById);
+router.post("/getLikedPosts/:id", authenticateToken, getLikedPosts);
 
 module.exports = router;

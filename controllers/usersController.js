@@ -515,3 +515,46 @@ exports.toggleLike = (req, res) => {
   }
 };
 
+// Allow users to view a detailed post including author and associated comments.
+exports.getpostById = (req, res) => {
+  const postId = req.params.id;
+
+  const postQuery = `SELECT comments.*,users.name AS author FROM posts JOIN users ON posts.user_id = user.id WHERE posts.id = ?`;
+
+  const commentQuery = `SELECT comments.*, users.name AS commenter FROM comments JOIN userd ON comments.user_id = user.id WHERE comments.post_id = ? ORDER BY comments.created_at ASC`;
+
+  db.query(postQuery, [postId], (err, postResult) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    if (postResult.length === 0)
+      return res.status(500).json({ error: err.message });
+
+    db.query(commentQuery, [postId], (err, commentResult) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      res.json({
+        post: postId[0],
+        comments: commentResult,
+      });
+    });
+  });
+};
+
+//List of Liked Posts by User
+exports.getLikedPosts = (req, res) => {
+  const userId = req.user.id;
+
+  const sql = `
+    SELECT posts.*, users.name AS author
+    FROM likes
+    JOIN posts ON likes.post_id = posts.id
+    JOIN users ON posts.user_id = users.id
+    WHERE likes.user_id = ?
+  `;
+
+  db.query(sql, [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    res.json({ likedPosts: result });
+  });
+};
