@@ -10,11 +10,23 @@ const generateOTP = () =>
 //register
 exports.register = async (req, res) => {
   //validation
-  body("name").trim().notEmpty().withMessage("name is required");
-  body("email").trim().notEmpty().withMessage("email is required");
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("password atleast 6 character");
+  try {
+    await body("name")
+      .trim()
+      .notEmpty()
+      .withMessage("name is required")
+      .run(req);
+    await body("email")
+      .trim()
+      .notEmpty()
+      .withMessage("email is required")
+      .run(req);
+    await body("password")
+      .isLength({ min: 6 })
+      .withMessage("password atleast 6 character");
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 
   async (req, res) => {
     const errors = validationResult(req);
@@ -32,7 +44,7 @@ exports.register = async (req, res) => {
 
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
       if (result.length > 0) {
-        return res.status(400).json({ message: "email is't exists" });
+        return res.status(400).json({ message: "email already exists" });
       }
 
       db.query(
@@ -109,7 +121,7 @@ exports.login = (req, res) => {
       }
     );
   } catch (error) {
-    return res.status(500).json({ Error: err });
+    return res.status(500).json({ Error: error });
   }
 };
 
@@ -374,7 +386,11 @@ exports.getComments = (req, res) => {
     const postId = req.params.id;
 
     db.query(
-      `SELECT comments.*,users.name AS author FROM comments JOIN users ON comments.user_id = users.id ORDER BY comments.created_at ASC`,
+      `SELECT comments.*,users.name AS author 
+      FROM comments 
+      JOIN users ON comments.user_id = users.id 
+      WHERE comments.post_id = ?
+      ORDER BY comments.created_at ASC`,
       [postId],
       (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -507,6 +523,7 @@ exports.toggleLike = (req, res) => {
 
         db.query(insertQuery, [postId, userId], (err) => {
           if (err) return res.status(500).json({ message: "post liked" });
+          return res.json({ message: "post liked" });
         });
       }
     });
@@ -558,3 +575,6 @@ exports.getLikedPosts = (req, res) => {
     res.json({ likedPosts: result });
   });
 };
+
+
+
